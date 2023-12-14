@@ -15,7 +15,7 @@ enum BMPanDirection: Int {
     case vertical   = 1
 }
 
-public protocol BMPlayerDelegate : class {
+public protocol BMPlayerDelegate : NSObjectProtocol {
     
     func bmPlayerCanPlay(player: BMPlayer) -> Bool
     
@@ -43,13 +43,9 @@ public protocol BMPlayerDelegate : class {
     
     func bmPlayer(player: BMPlayer, playerDidTapEpisodesBtn isFullscreen: Bool)
     
-    
     func bmPlayer(player: BMPlayer, playerDidTapBackBtn isFullscreen: Bool)
-    
-    func bmPlayer(player: BMPlayer, playerOrientChanged isFullscreen: Bool)
-    
+        
     func bmPlayer(player: BMPlayer, playerDidTapLockBtn isLock: Bool)
-    
     
     func bmPlayer(player: BMPlayer, playerDidTapShareBtn isFullscreen: Bool)
     
@@ -144,7 +140,7 @@ open class BMPlayer: UIView {
     
     fileprivate var isFullScreen:Bool {
         get {
-            return UIApplication.shared.statusBarOrientation.isLandscape
+            return UIScreen.main.bounds.size.height < UIScreen.main.bounds.size.width
         }
     }
     
@@ -358,15 +354,8 @@ open class BMPlayer: UIView {
             self.showVolumeBrightnessView(with: false)
         }
     }
-    
-    @objc open func onOrientationChanged() {
-        if self.isLock {return}
-        self.updateUI(isFullScreen)
-        self.delegate?.bmPlayer(player: self, playerOrientChanged: isFullScreen)
-    }
-    
+
     @objc fileprivate func fullScreenButtonPressed() {
-//        controlView.updateUI(!self.isFullScreen)
         if isFullScreen {
             if #available(iOS 16.0, *) {
                 let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene
@@ -458,8 +447,6 @@ open class BMPlayer: UIView {
             try session.setCategory(.playback, mode: .default, options: .allowBluetooth)
             try session.setActive(true)
         } catch {}
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(self.onOrientationChanged), name: UIApplication.didChangeStatusBarOrientationNotification, object: nil)
     }
     
     deinit {
@@ -516,7 +503,6 @@ open class BMPlayer: UIView {
             self.customVolumeBrightnessView.progressView.progress = Float(self.brightness)
         }
     }
-    
 }
 
 extension BMPlayer: BMPlayerLayerViewDelegate {
